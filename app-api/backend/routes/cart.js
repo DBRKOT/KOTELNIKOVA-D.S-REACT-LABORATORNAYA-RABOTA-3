@@ -1,4 +1,3 @@
-// routes/cart.js
 const express = require('express');
 const sql = require('mssql');
 const jwt = require('jsonwebtoken');
@@ -6,7 +5,6 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecret_jwt_key';
 
-// Middleware: простая аутентификация JWT
 function authMiddleware(req, res, next) {
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ error: 'Требуется авторизация' });
@@ -22,7 +20,6 @@ function authMiddleware(req, res, next) {
     }
 }
 
-// Ensure Cart table exists (run on first request if needed)
 async function ensureCartTable() {
     const pool = await sql.connect();
     const checkSql = `
@@ -42,7 +39,6 @@ async function ensureCartTable() {
     await pool.request().query(checkSql);
 }
 
-// GET /api/cart - получить корзину текущего пользователя
 router.get('/', authMiddleware, async (req, res) => {
     try {
         await ensureCartTable();
@@ -64,8 +60,6 @@ router.get('/', authMiddleware, async (req, res) => {
     }
 });
 
-// POST /api/cart - добавить услугу в корзину
-// body: { service_id, quantity }
 router.post('/', authMiddleware, async (req, res) => {
     try {
         await ensureCartTable();
@@ -77,7 +71,6 @@ router.post('/', authMiddleware, async (req, res) => {
 
         const pool = await sql.connect();
 
-        // Если уже есть — увеличим количество
         const existing = await pool.request()
             .input('user_id', sql.Int, userId)
             .input('service_id', sql.Int, service_id)
@@ -105,7 +98,6 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 });
 
-// DELETE /api/cart/:cartId - удалить элемент корзины
 router.delete('/:cartId', authMiddleware, async (req, res) => {
     try {
         await ensureCartTable();
@@ -113,7 +105,6 @@ router.delete('/:cartId', authMiddleware, async (req, res) => {
         const cartId = parseInt(req.params.cartId, 10);
 
         const pool = await sql.connect();
-        // Проверим, что элемент принадлежит пользователю
         const check = await pool.request()
             .input('cart_id', sql.Int, cartId)
             .query('SELECT cart_id, user_id FROM Cart WHERE cart_id = @cart_id');
