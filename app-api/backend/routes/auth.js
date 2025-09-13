@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
-const jwt = require('jsonwebtoken'); // Добавляем JWT
+const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecret_jwt_key'; // Секретный ключ
+const JWT_SECRET = process.env.JWT_SECRET || 'supersecret_jwt_key'; 
 
-// ⚡️ настройки подключения
 const sqlConfig = {
     user: String(process.env.DB_USER || 'dbrkot'),
     password: String(process.env.DB_PASSWORD || '123'),
@@ -20,7 +19,6 @@ const sqlConfig = {
     }
 };
 
-// 🔹 Логин
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
@@ -51,7 +49,6 @@ router.post('/login', async (req, res) => {
 
         const user = result.recordset[0];
         
-        // Генерируем JWT токен
         const token = jwt.sign(
             { 
                 user_id: user.user_id, 
@@ -63,13 +60,12 @@ router.post('/login', async (req, res) => {
             { expiresIn: '24h' }
         );
 
-        // Возвращаем пользователя и токен
         res.json({
             user_id: user.user_id,
             username: user.username,
             email: user.email,
             role_id: user.role_id,
-            token: token // Добавляем токен в ответ
+            token: token 
         });
     } catch (error) {
         console.error('Ошибка при авторизации:', error);
